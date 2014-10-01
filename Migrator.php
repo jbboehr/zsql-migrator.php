@@ -13,6 +13,11 @@ class Migrator
      * @var \zsql\Database
      */
     protected $database;
+    
+    /**
+     * @var \zsql\Migrator\Loader
+     */
+    private $loader;
 
     /**
      * @var string
@@ -47,6 +52,12 @@ class Migrator
         }
         
         $this->migrationPath = $spec['migrationPath'];
+        
+        if( isset($spec['loader']) ) {
+            $this->loader = $spec['loader'];
+        } else {
+            $this->loader = new Loader();
+        }
         if( isset($spec['namespace']) ) {
             $this->namespace = $spec['namespace'];
         }
@@ -78,11 +89,11 @@ class Migrator
         // Build a list of migrations to execute
         $todo = array();
         foreach( $this->migrations as $migration ) {
-            if( $migration['state'] !== 'initial' ) {
+            if( $migration->state() !== 'initial' ) {
                 continue;
             }
-            if( empty($migration['class']) ) {
-                // @todo should we alert?
+            if( $migration instanceof DatabaseMigration ) {
+                // Should we alert?
                 continue;
             }
             $todo[] = $migration;
@@ -113,12 +124,12 @@ class Migrator
                 continue;
             }
             $migration = $this->migrations[$version];
-            if( $migration['state'] !== 'initial' ) {
+            if( $migration->state() !== 'initial' ) {
                 // @todo should we alert?
                 continue;
             }
-            if( empty($migration['class']) ) {
-                // @todo should we alert?
+            if( $migration instanceof DatabaseMigration ) {
+                // Should we alert?
                 continue;
             }
             $todo[] = $migration;
@@ -150,12 +161,12 @@ class Migrator
                 continue;
             }
             $migration = $this->migrations[$version];
-            if( $migration['state'] !== 'failed' ) {
+            if( $migration->state() !== 'failed' ) {
                 // @todo should we alert?
                 continue;
             }
-            if( empty($migration['class']) ) {
-                // @todo should we alert?
+            if( $migration instanceof DatabaseMigration ) {
+                // Should we alert?
                 continue;
             }
             $todo[] = $migration;
@@ -186,12 +197,12 @@ class Migrator
                 continue;
             }
             $migration = $this->migrations[$version];
-            if( $migration['state'] !== 'success' ) {
+            if( $migration->state() !== 'success' ) {
                 // @todo should we alert?
                 continue;
             }
-            if( empty($migration['class']) ) {
-                // @todo should we alert?
+            if( $migration instanceof DatabaseMigration ) {
+                // Should we alert?
                 continue;
             }
             $todo[] = $migration;
@@ -224,11 +235,12 @@ class Migrator
         }
     }
     
-    private function executeUpOne($migration)
+    private function executeUpOne(MigrationInterface $migration)
     {
-        $class = $migration['class'];
-        $obj = new $class($this->database);
-        $obj->up();
+        $migration->inject(array(
+            'database' => $this->database,
+        ));
+        $migration->runUp();
     }
     
     private function executeDown(array $migrations)
@@ -244,11 +256,12 @@ class Migrator
         }
     }
     
-    private function executeDownOne($migration)
+    private function executeDownOne(MigrationInterface $migration)
     {
-        $class = $migration['class'];
-        $obj = new $class($this->database);
-        $obj->down();
+        $migration->inject(array(
+            'database' => $this->database,
+        ));
+        $migration->runDown();
     }
     
     /**
@@ -282,13 +295,14 @@ class Migrator
         $migrations = $this->getMigrationsOnFileSystem();
         $db = $this->getMigrationsInDatabase();
         
-        foreach( $db as $version => $info ) {
+        foreach( $db as $version => $dbMigration ) {
             if( isset($migrations[$version]) ) {
+                $fsMigration = $migrations[$version];
                 // Merge into existing
-                $migrations[$version]['state'] = $info['state'];
+                $fsMigration->state($dbMigration->state());
             } else {
                 // Create placeholder
-                $migrations[$version] = $info;
+                $migrations[$version] = $dbMigration;
             }
         }
         
@@ -306,21 +320,9 @@ class Migrator
     private function getMigrationsOnFileSystem() {
         $migrationFiles = glob($this->migrationPath);
         
-        foreach( $migrationFiles as $migrationFile ) {
-            include_once $migrationFile;
-        }
-        
-        
         $migrations = array();
-        foreach( get_declared_classes() as $class ) {
-            $info = $this->getMigrationInfo($class);
-            if( !$info ) {
-                continue;
-            }
-            if( isset($migrations[$info['version']]) ) {
-                throw new Exception("Duplicate migration version " . $info['version']);
-            }
-            $migrations[$info['version']] = $info;
+        foreach( $migrationFiles as $migrationFile ) {
+            $migrations += $this->loader->loadFile($migrationFile);
         }
         
         ksort($migrations);
@@ -341,43 +343,12 @@ class Migrator
         
         $migrations = array();
         foreach( $rows as $row ) {
-            $migrations[$row->version] = array(
-              'version' => $row->version,
-              'name' => $row->name,
-              'state' => $row->state,
-              'class' => null,
-            );
+            $migrations[$row->version] = new DatabaseMigration($row->name, 
+                    $row->version, $row->state);
         }
         
         ksort($migrations);
         
         return $migrations;
-    }
-    
-    /**
-     * Get information about a migration class
-     * 
-     * @param type $class
-     * @return boolean
-     * @throws Exception
-     */
-    private function getMigrationInfo($class) {
-        $ok = (substr($class, 0, strlen($this->namespace)) == $this->namespace);
-        if( !$ok ) {
-            return false;
-        }
-        $classPart = substr($class, strlen($this->namespace));
-        
-        $matches = null;
-        if( !preg_match($this->classRegex, $classPart, $matches) ) {
-            throw new Exception('Migration class does not begin with "Migration" or did not match format');
-        }
-        
-        return array(
-          'version' => $matches[1],
-          'name' => $matches[2],
-          'state' => 'initial',
-          'class' => $class,
-        );
     }
 }
