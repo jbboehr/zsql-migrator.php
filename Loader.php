@@ -34,13 +34,7 @@ class Loader {
         self::$instance = $this;
         self::$currentFile = $file;
         try {
-            include_once $file;
-            $classes = $this->file_get_php_classes($file);
-            foreach( $classes as $class ) {
-                if( is_subclass_of($class, '\\zsql\\Migrator\\MigrationInterface') ) {
-                    $this->saveMigration(new $class());
-                }
-            }
+            $this->loadFileInternal($file);
             self::$currentFile = null;
             self::$instance = null;
         } catch( \Exception $e ) {
@@ -49,6 +43,17 @@ class Loader {
             throw $e;
         }
         return $this->cloneMigrations(self::$migrations[$file]);
+    }
+    
+    private function loadFileInternal($file)
+    {
+        include_once $file;
+        $classes = $this->file_get_php_classes($file);
+        foreach( $classes as $class ) {
+            if( is_subclass_of($class, '\\zsql\\Migrator\\MigrationInterface') ) {
+                $this->saveMigration(new $class());
+            }
+        }
     }
     
 
@@ -63,14 +68,14 @@ class Loader {
     public function saveMigration(MigrationInterface $migration)
     {
         if( null === self::$currentFile ) {
-            throw new Exception('No current migration file!');
+            throw new Exception('No current migration file');
         }
         $version = $migration->version();
         if( null === $version ) {
             throw new Exception('Migration must have a version');
         }
         if( isset(self::$migrations[self::$currentFile][$version]) ) {
-            throw new Exception('Must not have migration with duplicate version!');
+            throw new Exception('Must not have migration with duplicate version');
         }
         self::$migrations[self::$currentFile][$version] = $migration;
         return $this;
