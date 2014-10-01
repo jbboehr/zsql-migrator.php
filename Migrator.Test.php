@@ -14,4 +14,17 @@ class Migrator_Test extends Common_Test
         
         $this->assertEquals(2, count($migrations));
     }
+    
+    public function testMigrationsB()
+    {
+        $migrator = new zsql\Migrator\Migrator(array(
+            'database' => $this->databaseFactory(),
+            'migrationPath' => __DIR__ . '/../fixtures/migrationsB.php',
+        ));
+        $migrations = $migrator->getMigrations();
+        //var_dump($migrations);
+        
+        $this->assertEquals(2, count($migrations));
+        
+    }
 }
