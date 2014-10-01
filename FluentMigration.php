@@ -2,6 +2,7 @@
 
 namespace zsql\Migrator;
 
+
 class FluentMigration extends MigrationAbstract
 {
     private $downFn;
@@ -15,8 +16,11 @@ class FluentMigration extends MigrationAbstract
         $this->saveFn = $saveFn;
     }
     
-    public function up($fn)
+    public function up($fn = null)
     {
+        if( null === $fn ) {
+            return $this->upFn;
+        }
         if( !is_callable($fn) ) {
             throw new Exception('Specified function is not callable');
         }
@@ -24,8 +28,11 @@ class FluentMigration extends MigrationAbstract
         return $this;
     }
     
-    public function down($fn)
+    public function down($fn = null)
     {
+        if( null === $fn ) {
+            return $this->downFn;
+        }
         if( !is_callable($fn) ) {
             throw new Exception('Specified function is not callable');
         }
@@ -37,7 +44,7 @@ class FluentMigration extends MigrationAbstract
         if( !is_callable($this->downFn) ) {
             throw new Exception('Specified function is not callable');
         }
-        call_user_func($this->downFn);
+        call_user_func($this->downFn, $this->database);
         return $this;
     }
 
@@ -45,7 +52,7 @@ class FluentMigration extends MigrationAbstract
         if( !is_callable($this->upFn) ) {
             throw new Exception('Specified function is not callable');
         }
-        call_user_func($this->upFn);
+        call_user_func($this->upFn, $this->database);
         return $this;
     }
     

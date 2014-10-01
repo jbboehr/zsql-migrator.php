@@ -36,7 +36,7 @@ abstract class MigrationAbstract implements MigrationInterface
     
     public function state($state = null) {
         if( null === $state ) {
-            return $this->state;
+            return ($this->state ?: 'initial');
         }
         $this->state = $state;
         return $this;

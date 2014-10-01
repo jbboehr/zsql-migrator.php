@@ -4,11 +4,11 @@ namespace zsql\Migrator;
 
 class DatabaseMigration extends \zsql\Migrator\MigrationAbstract
 {
-    public function __construct($name, $version, $state)
+    public function __construct($version, $name, $state = null)
     {
-        $this->name = (string) $name;
         $this->version = (integer) $version;
-        $this->state = (string) $state ?: 'initial';
+        $this->name = (string) $name;
+        $this->state = (string) ($state ?: 'initial');
     }
 
     public function runDown() {

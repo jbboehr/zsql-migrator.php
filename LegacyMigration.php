@@ -7,7 +7,7 @@ abstract class LegacyMigration extends MigrationAbstract
     /**
      * @var string
      */
-    protected $classRegex = '/^Migration_?([\d]+)_?([\w\d]+)$/';
+    protected $classRegex = '/Migration_?([\d]+)_?([\w\d]+)$/';
     
     /**
      * Constructor
@@ -21,7 +21,7 @@ abstract class LegacyMigration extends MigrationAbstract
         if( false !== $lastPos ) {
             $classPart = substr($class, $lastPos + 1);
         } else {
-            throw new Exception('Invalid legacy migration class name: ' . $class);
+            $classPart = $class;
         }
         $matches = null;
         if( !preg_match($this->classRegex, $classPart, $matches ) ) {
@@ -35,7 +35,7 @@ abstract class LegacyMigration extends MigrationAbstract
         if( !$this->database ) {
             throw new Exception('Cannot execute down without a database');
         }
-        $this->up();
+        $this->down();
         return $this;
     }
 
@@ -43,7 +43,7 @@ abstract class LegacyMigration extends MigrationAbstract
         if( !$this->database ) {
             throw new Exception('Cannot execute up without a database');
         }
-        $this->down();
+        $this->up();
         return $this;
     }
     

@@ -343,8 +343,8 @@ class Migrator
         
         $migrations = array();
         foreach( $rows as $row ) {
-            $migrations[$row->version] = new DatabaseMigration($row->name, 
-                    $row->version, $row->state);
+            $migrations[$row->version] = new DatabaseMigration($row->version, 
+                    $row->name, $row->state);
         }
         
         ksort($migrations);
