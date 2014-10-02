@@ -219,7 +219,7 @@ class Migrator
      */
     public function migrateLatest()
     {
-        $todo = $this->listLatest();
+        $todo = $this->calculateLatest();
         $this->executeUp($todo);
         return $this;
     }
@@ -258,7 +258,7 @@ class Migrator
      */
     public function migrateRevert($versions)
     {
-        $this->calculateRevert($versions);
+        $todo = $this->calculateRevert($versions);
         $this->executeDown($todo);
         return $this;
     }
@@ -347,12 +347,12 @@ class Migrator
      * @param type $migration
      * @param type $state
      */
-    private function markState($migration, $state)
+    private function markState(MigrationInterface $migration, $state)
     {
         $this->database->insert()
             ->into($this->migrationTable)
-            ->set('version', $migration['version'])
-            ->set('name', $migration['name'])
+            ->set('version', $migration->version())
+            ->set('name', $migration->name())
             ->set('state', $state)
             ->onDuplicateKeyUpdate('state', $state)
             ->query();

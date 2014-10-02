@@ -36,3 +36,15 @@ INSERT INTO `zsql`.`migrationsFixtureD` VALUES ('1412129062', 'TestA', 'success'
 INSERT INTO `zsql`.`migrationsFixtureD` VALUES ('1412225787', 'TestC', 'success');
 INSERT INTO `zsql`.`migrationsFixtureD` VALUES ('1412225918', 'TestD', 'initial');
 INSERT INTO `zsql`.`migrationsFixtureD` VALUES ('1412227465', 'TestE', 'failed');
+
+DROP TABLE IF EXISTS `zsql`.`migrationsFixtureE`;
+CREATE TABLE `zsql`.`migrationsFixtureE` LIKE `zsql`.`migrations`;
+
+
+DROP TABLE IF EXISTS `zsql`.`migrationtesta`;
+DROP TABLE IF EXISTS `zsql`.`migrationtestb`;
+DROP TABLE IF EXISTS `zsql`.`migrationtestc`;
+DROP TABLE IF EXISTS `zsql`.`migrationtestd`;
+DROP TABLE IF EXISTS `zsql`.`migrationteste`;
+DROP TABLE IF EXISTS `zsql`.`migrationtestf`;
+DROP TABLE IF EXISTS `zsql`.`migrationtestg`;
