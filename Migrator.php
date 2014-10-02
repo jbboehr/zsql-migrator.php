@@ -64,6 +64,9 @@ class Migrator
         if( isset($spec['classRegex']) ) {
             $this->classRegex = $spec['classRegex'];
         }
+        if( isset($spec['migrationTable']) ) {
+            $this->migrationTable = $spec['migrationTable'];
+        }
         
         $this->migrations = $this->prepare();
     }
@@ -78,13 +81,12 @@ class Migrator
         return $this->migrations;
     }
     
-    
     /**
-     * Apply all initial migrations
+     * List all migrations available in the initial state
      * 
-     * @return \zsql\Migrator\Migrator
+     * @return \zsql\Migrator\DatabaseMigration
      */
-    public function migrateLatest()
+    public function calculateLatest()
     {
         // Build a list of migrations to execute
         $todo = array();
@@ -99,18 +101,16 @@ class Migrator
             $todo[] = $migration;
         }
         
-        $this->executeUp($todo);
-        
-        return $this;
+        return $todo;
     }
     
     /**
-     * Apply a specific migration
+     * Calculate specific migrations
      * 
      * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return array
      */
-    public function migratePick($versions)
+    public function calculatePick($versions)
     {
         // Convert to array and sort
         settype($versions, 'array');
@@ -135,18 +135,15 @@ class Migrator
             $todo[] = $migration;
         }
         
-        $this->executeUp($todo);
-        
-        return $this;
+        return $todo;
     }
     
     /**
-     * Retry a failed migration
+     * Calculate migrations to retry
      * 
-     * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return array
      */
-    public function migrateRetry($versions = null)
+    public function calculateRetry($versions = null)
     {
         if( $versions !== null ) {
             settype($versions, 'array');
@@ -155,6 +152,9 @@ class Migrator
         
         // Build a list of migrations to execute
         $todo = array();
+        if( null === $versions ) {
+            $versions = array_keys($this->migrations);
+        }
         foreach( $versions as $version ) {
             if( !isset($this->migrations[$version]) ) {
                 // @todo should we alert?
@@ -172,18 +172,16 @@ class Migrator
             $todo[] = $migration;
         }
         
-        $this->executeUp($todo);
-        
-        return $this;
+        return $todo;
     }
     
     /**
-     * Undo a specific migration
+     * Calculate migrations to revert
      * 
      * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return array
      */
-    public function migrateRevert($versions)
+    public function calculateRevert($versions)
     {
         // Convert to array and sort
         settype($versions, 'array');
@@ -208,15 +206,60 @@ class Migrator
             $todo[] = $migration;
         }
         
-        
-        $this->executeDown($todo);
-        
-        return $this;
+        return $todo;
     }
     
     
+    /**
+     * Apply all initial migrations
+     * 
+     * @return \zsql\Migrator\Migrator
+     */
+    public function migrateLatest()
+    {
+        $todo = $this->listLatest();
+        $this->executeUp($todo);
+        return $this;
+    }
     
+    /**
+     * Apply a specific migration
+     * 
+     * @param mixed $versions
+     * @return \zsql\Migrator\Migrator
+     */
+    public function migratePick($versions)
+    {
+        $todo = $this->calculatePick($versions);
+        $this->executeUp($todo);
+        return $this;
+    }
     
+    /**
+     * Retry a failed migration
+     * 
+     * @param mixed $versions
+     * @return \zsql\Migrator\Migrator
+     */
+    public function migrateRetry($versions = null)
+    {
+        $todo = $this->calculateRetry($versions);
+        $this->executeUp($todo);
+        return $this;
+    }
+    
+    /**
+     * Undo a specific migration
+     * 
+     * @param mixed $versions
+     * @return \zsql\Migrator\Migrator
+     */
+    public function migrateRevert($versions)
+    {
+        $this->calculateRevert($versions);
+        $this->executeDown($todo);
+        return $this;
+    }
     
     
     
@@ -225,6 +268,10 @@ class Migrator
     private function executeUp(array $migrations)
     {
         foreach( $migrations as $migration ) {
+            if( $migration->state() !== 'initial' &&
+                    $migration->state() !== 'failed' ) {
+                throw new Exception('Migration ' . $migration->version() . ' in invalid state');
+            }
             try {
                 $this->executeUpOne($migration);
                 $this->markState($migration, 'success');
@@ -246,6 +293,10 @@ class Migrator
     private function executeDown(array $migrations)
     {
         foreach( $migrations as $migration ) {
+            if( $migration->state() !== 'success' &&
+                    $migration->state() !== 'failed-down' ) {
+                throw new Exception('Migration ' . $migration->version() . ' in invalid state');
+            }
             try {
                 $this->executeDownOne($migration);
                 $this->markState($migration, 'initial');
