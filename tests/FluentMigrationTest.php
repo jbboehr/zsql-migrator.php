@@ -3,7 +3,7 @@
 use zsql\Database;
 use zsql\Migrator\FluentMigration;
 
-class FluentMigration_Test extends Common_Test
+class FluentMigrationTest extends Common_Test
 {
     public function testConstruct()
     {

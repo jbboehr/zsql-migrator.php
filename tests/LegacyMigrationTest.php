@@ -3,7 +3,7 @@
 use zsql\Database;
 use zsql\Migrator\FluentMigration;
 
-class LegacyMigration_Test extends Common_Test
+class LegacyMigrationTest extends Common_Test
 {
     public function testConstruct()
     {

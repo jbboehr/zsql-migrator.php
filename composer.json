@@ -1,0 +1,30 @@
+{
+  "authors" : [
+    {
+      "email" : "jbboehr@gmail.com",
+      "name" : "John Boehr"
+    }
+  ],
+  "autoload" : {
+    "psr-4" : {
+      "zsql\\Migrator\\": "src/"
+    }
+  },
+  "description" : "SQL migrator for use with zsql",
+  "homepage": "http://github.com/jbboehr/zsql-migrator.php",
+  "name" : "jbboehr/zsql-migrator",
+  "keywords" : [
+    "db",
+    "mysql",
+    "sql",
+    "generator",
+    "migrator",
+    "migrations"
+  ],
+  "license": "MIT",
+  "require" : {
+    "php" : ">=5.3.0",
+    "jbboehr/zsql" : "*"
+  },
+  "type" : "library"
+}

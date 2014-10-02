@@ -1,6 +1,6 @@
 <?php
 
-class Migrator_Test extends Common_Migrator_Test
+class MigratorTest extends Common_Migrator_Test
 {
     
     public function testConstructorThrowsWhenNoDatabase()

@@ -3,7 +3,7 @@
 use zsql\Migrator\Loader;
 use zsql\Migrator\FluentMigration;
 
-class Loader_Test extends Common_Test
+class LoaderTest extends Common_Test
 {
     private $loader;
     
@@ -23,7 +23,7 @@ class Loader_Test extends Common_Test
     {
         $loader = new Loader();
         $classes = $this->callReflectedMethod($loader, 'file_get_php_classes',
-                __DIR__ . '/../fixtures/migrationsA.php');
+                __DIR__ . '/fixtures/migrationsA.php');
         $this->assertEquals(array(
             '\\zsql\\Tests\\Fixtures\\MigrationsA\\Migration1412129062_TestA',
             '\\zsql\\Tests\\Fixtures\\MigrationsA\\Migration1412129177_TestB',
@@ -93,7 +93,7 @@ class Loader_Test extends Common_Test
     {
         $loader = new Loader();
         try {
-          $migrations = $loader->loadFile(__DIR__ . '/../fixtures/loaderA.php');
+          $migrations = $loader->loadFile(__DIR__ . '/fixtures/loaderA.php');
           $this->assertEquals(false, true, 'Did not throw exception');
         } catch( \Exception $e ) {
             $this->assertEquals($e->getMessage(), 'testing exception in constructor');

@@ -1,6 +1,6 @@
 <?php
 
-class Command_Test extends Common_Migrator_Test
+class CommandTest extends Common_Migrator_Test
 {
     public function testLatestDry()
     {

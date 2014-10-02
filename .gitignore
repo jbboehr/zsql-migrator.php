@@ -1,0 +1,8 @@
+build
+composer.lock
+doc
+nbproject
+reports
+vendor
+compatinfo.log
+gh-pages

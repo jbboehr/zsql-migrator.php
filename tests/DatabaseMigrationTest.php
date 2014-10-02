@@ -2,7 +2,7 @@
 
 use zsql\Migrator\DatabaseMigration;
 
-class DatabaseMigration_Test extends Common_Test
+class DatabaseMigrationTest extends Common_Test
 {
     public function testVersion() {
         $migration = new DatabaseMigration(1234, 'test', 'initial');
