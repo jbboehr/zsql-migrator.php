@@ -2,17 +2,31 @@
 
 namespace zsql\Migrator;
 
-class Loader {
-    
+/**
+ * Loader for migration files
+ */
+class Loader
+{    
+    /**
+     * @var string
+     */
     static private $currentFile;
     
+    /**
+     * @var \zsql\Migrator\Loader
+     */
     static private $instance;
     
+    /**
+     * @var array
+     */
     static private $migrations;
     
     /**
+     * Instance method
+     * 
      * @return \zsql\Migrator\Loader
-     * @throws Exception
+     * @throws \zsql\Migrator\Exception
      */
     static public function _()
     {
@@ -22,10 +36,13 @@ class Loader {
         return self::$instance;
     }
     
-    public function __construct() {
-        
-    }
-    
+    /**
+     * Load migrations in specified file
+     * 
+     * @param string $file
+     * @return array
+     * @throws \zsql\Migrator\Exception
+     */
     public function loadFile($file) {
         if( isset(self::$migrations[$file]) ) {
             return $this->cloneMigrations(self::$migrations[$file]);
@@ -45,6 +62,11 @@ class Loader {
         return $this->cloneMigrations(self::$migrations[$file]);
     }
     
+    /**
+     * Load migrations in a file (internal)
+     * 
+     * @param string $file
+     */
     private function loadFileInternal($file)
     {
         include_once $file;
@@ -56,7 +78,11 @@ class Loader {
         }
     }
     
-
+    /**
+     * Fluent interface accessor for migration construction
+     * 
+     * @return \zsql\Migrator\FluentMigration
+     */
     public function migration() {
         $self = $this;
         $onSave = function(MigrationInterface $migration) use ($self) {
@@ -65,6 +91,13 @@ class Loader {
         return new FluentMigration($onSave);
     }
     
+    /**
+     * Save migration in the loader database
+     * 
+     * @param \zsql\Migrator\MigrationInterface $migration
+     * @return \zsql\Migrator\Loader
+     * @throws \zsql\Migrator\Exception
+     */
     public function saveMigration(MigrationInterface $migration)
     {
         if( null === self::$currentFile ) {
@@ -86,6 +119,12 @@ class Loader {
     
     // Utilties
     
+    /**
+     * Clone an array of migrations
+     * 
+     * @param array $migrations
+     * @return array
+     */
     private function cloneMigrations(array $migrations = null)
     {
         if( !$migrations ) {
@@ -99,12 +138,24 @@ class Loader {
         return $arr;
     }
     
+    /**
+     * Get a list of php classes in specified file
+     * 
+     * @param string $filepath
+     * @return array
+     */
     private function file_get_php_classes($filepath) {
         $php_code = file_get_contents($filepath);
         $classes = $this->get_php_classes($php_code);
         return $classes;
     }
 
+    /**
+     * Get a list of php classes in specified string
+     * 
+     * @param string $php_code
+     * @return array
+     */
     private function get_php_classes($php_code) {
         $classes = array();
         $tokens = token_get_all($php_code);

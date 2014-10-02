@@ -2,6 +2,9 @@
 
 namespace zsql\Migrator;
 
+/**
+ * Provides a legacy class name based interface for creating migrations
+ */
 abstract class LegacyMigration extends MigrationAbstract
 {
     /**
@@ -31,6 +34,12 @@ abstract class LegacyMigration extends MigrationAbstract
         $this->name = $matches[2];
     }
     
+    /**
+     * Executes the down function
+     * 
+     * @return \zsql\Migrator\LegacyMigration
+     * @throws \zsql\Migrator\Exception
+     */
     public function runDown() {
         if( !$this->database ) {
             throw new Exception('Cannot execute down without a database');
@@ -39,6 +48,12 @@ abstract class LegacyMigration extends MigrationAbstract
         return $this;
     }
 
+    /**
+     * Executes the up function
+     * 
+     * @return \zsql\Migrator\LegacyMigration
+     * @throws \zsql\Migrator\Exception
+     */
     public function runUp() {
         if( !$this->database ) {
             throw new Exception('Cannot execute up without a database');

@@ -2,6 +2,9 @@
 
 namespace zsql\Migrator;
 
+/**
+ * Main migrator class
+ */
 class Migrator
 {
     /**
@@ -264,6 +267,12 @@ class Migrator
     
     // Execution Utilities
     
+    /**
+     * Execute up an array of migrations 
+     * 
+     * @param array $migrations
+     * @throws \zsql\Migrator\Exception
+     */
     private function executeUp(array $migrations)
     {
         foreach( $migrations as $migration ) {
@@ -281,6 +290,12 @@ class Migrator
         }
     }
     
+    /**
+     * Execute up a single migration
+     * 
+     * @param \zsql\Migrator\MigrationInterface $migration
+     * @throws \zsql\Migrator\Exception
+     */
     private function executeUpOne(MigrationInterface $migration)
     {
         $migration->inject(array(
@@ -289,6 +304,12 @@ class Migrator
         $migration->runUp();
     }
     
+    /**
+     * Execute down an array of migrations
+     * 
+     * @param array $migrations
+     * @throws \zsql\Migrator\Exception
+     */
     private function executeDown(array $migrations)
     {
         foreach( $migrations as $migration ) {
@@ -306,6 +327,12 @@ class Migrator
         }
     }
     
+    /**
+     * Execute down a single migration
+     * 
+     * @param \zsql\Migrator\MigrationInterface $migration
+     * @throws \zsql\Migrator\Exception
+     */
     private function executeDownOne(MigrationInterface $migration)
     {
         $migration->inject(array(
@@ -329,6 +356,7 @@ class Migrator
             ->set('state', $state)
             ->onDuplicateKeyUpdate('state', $state)
             ->query();
+        $migration->state($state);
     }
     
     
@@ -365,7 +393,7 @@ class Migrator
      * Get all of the migrations on the file system
      * 
      * @return array
-     * @throws Exception
+     * @throws \zsql\Migrator\Exception
      */
     private function getMigrationsOnFileSystem() {
         $migrationFiles = glob($this->migrationPath);

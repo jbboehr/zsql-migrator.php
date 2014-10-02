@@ -2,6 +2,9 @@
 
 namespace zsql\Migrator;
 
+/**
+ * Interface for migration classes
+ */
 interface MigrationInterface
 {
     /**
