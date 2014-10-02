@@ -5,11 +5,6 @@ namespace zsql\Migrator;
 class Migrator
 {
     /**
-     * @var string
-     */
-    protected $classRegex = '/^Migration_?([\d]+)_?([\w\d]+)$/';
-    
-    /**
      * @var \zsql\Database
      */
     protected $database;
@@ -35,35 +30,28 @@ class Migrator
     protected $migrations;
     
     /**
-     * @var string
-     */
-    protected $namespace = 'Migrations\\';
-    
-    /**
      * Constructor
      * 
      * @param \Pimple|array $spec
      */
     public function __construct($spec)
     {
-        $this->database = $spec['database'];
-        if( !($this->database instanceof \zsql\Database) ) {
-            throw new \Exception('Database must be instance of zsql\\Database');
+        if( !isset($spec['database']) ||
+                !($spec['database'] instanceof \zsql\Database) ) {
+            throw new Exception('Database must be instance of zsql\\Database');
         }
+        $this->database = $spec['database'];
         
-        $this->migrationPath = $spec['migrationPath'];
+        if( isset($spec['migrationPath']) ) {
+            $this->migrationPath = $spec['migrationPath'];
+        }
         
         if( isset($spec['loader']) ) {
             $this->loader = $spec['loader'];
         } else {
             $this->loader = new Loader();
         }
-        if( isset($spec['namespace']) ) {
-            $this->namespace = $spec['namespace'];
-        }
-        if( isset($spec['classRegex']) ) {
-            $this->classRegex = $spec['classRegex'];
-        }
+        
         if( isset($spec['migrationTable']) ) {
             $this->migrationTable = $spec['migrationTable'];
         }
@@ -120,17 +108,16 @@ class Migrator
         $todo = array();
         foreach( $versions as $version ) {
             if( !isset($this->migrations[$version]) ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' does not exist');
             }
             $migration = $this->migrations[$version];
             if( $migration->state() !== 'initial' ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'in state ' . $migration->state() . ' and cannot be retried.');
             }
             if( $migration instanceof DatabaseMigration ) {
-                // Should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'only recorded in the database and cannot be reverted.');
             }
             $todo[] = $migration;
         }
@@ -148,26 +135,39 @@ class Migrator
         if( $versions !== null ) {
             settype($versions, 'array');
             sort($versions);
+            $isAll = false;
+        } else {
+            $isAll = true;
+        }
+        
+        // Build a list of migrations to retry
+        if( null === $versions ) {
+            $versions = array();
+            foreach( $this->migrations as $migration ) {
+                if( $migration->state() !== 'failed' ) {
+                    continue;
+                }
+                if( $migration instanceof DatabaseMigration ) {
+                    continue;
+                }
+                $versions[] = $migration->version();
+            }
         }
         
         // Build a list of migrations to execute
         $todo = array();
-        if( null === $versions ) {
-            $versions = array_keys($this->migrations);
-        }
         foreach( $versions as $version ) {
             if( !isset($this->migrations[$version]) ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' does not exist');
             }
             $migration = $this->migrations[$version];
             if( $migration->state() !== 'failed' ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'in state ' . $migration->state() . ' and cannot be retried.');
             }
             if( $migration instanceof DatabaseMigration ) {
-                // Should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'only recorded in the database and cannot be retried.');
             }
             $todo[] = $migration;
         }
@@ -191,17 +191,16 @@ class Migrator
         $todo = array();
         foreach( $versions as $version ) {
             if( !isset($this->migrations[$version]) ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' does not exist');
             }
             $migration = $this->migrations[$version];
             if( $migration->state() !== 'success' ) {
-                // @todo should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'in state ' . $migration->state() . ' and cannot be reverted.');
             }
             if( $migration instanceof DatabaseMigration ) {
-                // Should we alert?
-                continue;
+                throw new Exception('Migration ' . $version . ' is ' 
+                        . 'only recorded in the database and cannot be reverted.');
             }
             $todo[] = $migration;
         }
