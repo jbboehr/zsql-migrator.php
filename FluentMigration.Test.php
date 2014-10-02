@@ -130,4 +130,11 @@ class FluentMigration_Test extends Common_Test
         $migration = new FluentMigration();
         $migration->runUp();
     }
+    
+    public function testInjectThrowsWithoutDatabase()
+    {
+        $this->setExpectedException('\\zsql\\Migrator\\Exception');
+        $migration = new FluentMigration();
+        $migration->inject(array());
+    }
 }
