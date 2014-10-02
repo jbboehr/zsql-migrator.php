@@ -1,18 +1,7 @@
 <?php
 
-class Migrator_Test extends Common_Test
+class Migrator_Test extends Common_Migrator_Test
 {
-    public function migratorFactory($file, $table = null)
-    {
-        if( $table === null ) {
-            $table = 'migrations';
-        }
-        return new zsql\Migrator\Migrator(array(
-            'database' => $this->databaseFactory(),
-            'migrationPath' => __DIR__ . '/../fixtures/' . $file . '.php',
-            'migrationTable' => $table,
-        ));
-    }
     
     public function testConstructorThrowsWhenNoDatabase()
     {
