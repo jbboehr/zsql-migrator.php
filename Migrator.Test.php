@@ -14,6 +14,7 @@ class Migrator_Test extends Common_Migrator_Test
        $loader = new zsql\Migrator\Loader();
        $migrator = new zsql\Migrator\Migrator(array(
            'database' => $this->databaseFactory(),
+           'migrationPath' => __DIR__ . '/../fixtures/migrationsA.php',
            'loader' => $loader,
        ));
        $this->assertSame($loader, $this->getReflectedPropertyValue($migrator, 'loader'));
