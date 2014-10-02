@@ -7,6 +7,15 @@ DROP USER 'zsql'@'localhost';
 CREATE USER 'zsql'@'localhost' IDENTIFIED BY 'nopass';
 GRANT ALL ON zsql.* TO 'zsql'@'localhost';
 
+DROP TABLE IF EXISTS `zsql`.`migrations`;
+CREATE TABLE `zsql`.`migrations` (
+  `version` bigint(20) unsigned NOT NULL,
+  `name` varchar(255) default NULL,
+  `state` enum('initial', 'failed', 'failed-down', 'success') NOT NULL default 'initial',
+  PRIMARY KEY (`version`),
+  KEY `state` (`state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
 DROP TABLE IF EXISTS `zsql`.`migrationsFixtureA`;
 CREATE TABLE `zsql`.`migrationsFixtureA` LIKE `zsql`.`migrations`;
 INSERT INTO `zsql`.`migrationsFixtureA` VALUES ('1412129062', 'TestA', 'success');
