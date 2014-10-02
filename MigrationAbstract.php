@@ -88,4 +88,12 @@ abstract class MigrationAbstract implements MigrationInterface
         $this->version = $version;
         return $this;
     }
+    
+    public function __toString()
+    {
+        return 'Migration:'
+             . ' version=' . $this->version
+             . ' name=' . $this->name
+             . ' state=' . $this->state;
+    }
 }

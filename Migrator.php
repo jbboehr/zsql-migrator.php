@@ -135,7 +135,7 @@ class Migrator
      */
     public function calculateRetry($versions = null)
     {
-        if( $versions !== null ) {
+        if( !empty($versions) ) {
             settype($versions, 'array');
             sort($versions);
             $isAll = false;
@@ -144,7 +144,7 @@ class Migrator
         }
         
         // Build a list of migrations to retry
-        if( null === $versions ) {
+        if( $isAll ) {
             $versions = array();
             foreach( $this->migrations as $migration ) {
                 if( $migration->state() !== 'failed' ) {
