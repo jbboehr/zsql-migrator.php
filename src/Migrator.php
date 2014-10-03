@@ -13,6 +13,11 @@ class Migrator
     protected $database;
     
     /**
+     * @var callable
+     */
+    protected $emit;
+    
+    /**
      * @var \zsql\Migrator\Loader
      */
     private $loader;
@@ -59,6 +64,10 @@ class Migrator
             $this->migrationTable = $spec['migrationTable'];
         }
         
+        if( isset($spec['emit']) ) {
+            $this->emit = $spec['emit'];
+        }
+        
         $this->migrations = $this->prepare();
     }
     
@@ -70,6 +79,18 @@ class Migrator
     public function getMigrations()
     {
         return $this->migrations;
+    }
+    
+    /**
+     * Set the emitter
+     * 
+     * @param string $emitter
+     * @return \zsql\Migrator\Migrator
+     */
+    public function setEmitter($emitter)
+    {
+        $this->emit = $emitter;
+        return $this;
     }
     
     /**
@@ -267,6 +288,22 @@ class Migrator
     
     // Execution Utilities
     
+    private function emitState(MigrationInterface $migration, $action)
+    {
+        $this->emit(array(
+            'migration' => $migration,
+            'action' => $action,
+            'state' => $migration->state(),
+        ));
+    }
+    
+    private function emit($message)
+    {
+        if( $this->emit ) {
+            call_user_func($this->emit, $message);
+        }
+    }
+    
     /**
      * Execute up an array of migrations 
      * 
@@ -280,11 +317,14 @@ class Migrator
                     $migration->state() !== 'failed' ) {
                 throw new Exception('Migration ' . $migration->version() . ' in invalid state');
             }
+            $this->emitState($migration, 'up-start');
             try {
                 $this->executeUpOne($migration);
                 $this->markState($migration, 'success');
+                $this->emitState($migration, 'up-success');
             } catch( \Exception $e ) {
                 $this->markState($migration, 'failed');
+                $this->emitState($migration, 'up-failed');
                 throw $e;
             }
         }
@@ -317,11 +357,14 @@ class Migrator
                     $migration->state() !== 'failed-down' ) {
                 throw new Exception('Migration ' . $migration->version() . ' in invalid state');
             }
+            $this->emitState($migration, 'down-start');
             try {
                 $this->executeDownOne($migration);
                 $this->markState($migration, 'initial');
+                $this->emitState($migration, 'down-success');
             } catch( \Exception $e ) {
                 $this->markState($migration, 'failed-down');
+                $this->emitState($migration, 'down-failed');
                 throw $e;
             }
         }

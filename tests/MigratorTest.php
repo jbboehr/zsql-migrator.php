@@ -308,4 +308,16 @@ class MigratorTest extends Common_Migrator_Test
     {
         $migrator = $this->migratorFactory('migrationsD');
     }
+    
+    public function testEmit()
+    {
+        $migrator = $this->migratorFactory('migrationsD');
+        $givenMessage = null;
+        $migrator->setEmitter(function($message) use (&$givenMessage) {
+            $givenMessage = $message;
+        });
+        $message = array('blah');
+        $this->callReflectedMethod($migrator, 'emit', $message);
+        $this->assertSame($message, $givenMessage);
+    }
 }

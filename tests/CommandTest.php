@@ -194,4 +194,148 @@ EOF;
         
         include $path;
     }
+    
+    public function testLatestCallsMigrateLatest()
+    {
+        $stub = $this->getMock('\\zqsl\\Migrator\\Migrator', 
+                array('migrateLatest', 'setEmitter'));
+        $stub->expects($this->once())
+                ->method('migrateLatest')
+                ->will($this->returnValue(null));
+        $stub->expects($this->once())
+                ->method('setEmitter')
+                ->will($this->returnValue(null));
+        $command = new \zsql\Migrator\Command(array(
+            'database' => $this->databaseFactory(),
+            'migrator' => $stub,
+        ), array('latest'));
+        $command->run();
+    }
+    
+    public function testPickCallsMigratePick()
+    {
+        $stub = $this->getMock('\\zqsl\\Migrator\\Migrator', 
+                array('migratePick', 'setEmitter'));
+        $stub->expects($this->once())
+                ->method('migratePick')
+                ->will($this->returnValue(null));
+        $stub->expects($this->once())
+                ->method('setEmitter')
+                ->will($this->returnValue(null));
+        $command = new \zsql\Migrator\Command(array(
+            'database' => $this->databaseFactory(),
+            'migrator' => $stub,
+        ), array('pick', '1412129062'));
+        $command->run();
+    }
+    
+    public function testRetryCallsMigrateRetry()
+    {
+        $stub = $this->getMock('\\zqsl\\Migrator\\Migrator', 
+                array('migrateRetry', 'setEmitter'));
+        $stub->expects($this->once())
+                ->method('migrateRetry')
+                ->will($this->returnValue(null));
+        $stub->expects($this->once())
+                ->method('setEmitter')
+                ->will($this->returnValue(null));
+        $command = new \zsql\Migrator\Command(array(
+            'database' => $this->databaseFactory(),
+            'migrator' => $stub,
+        ), array('retry', '1412129062'));
+        $command->run();
+    }
+    
+    public function testRevertCallsMigrateRevert()
+    {
+        $stub = $this->getMock('\\zqsl\\Migrator\\Migrator', 
+                array('migrateRevert', 'setEmitter'));
+        $stub->expects($this->once())
+                ->method('migrateRevert')
+                ->will($this->returnValue(null));
+        $stub->expects($this->once())
+                ->method('setEmitter')
+                ->will($this->returnValue(null));
+        $command = new \zsql\Migrator\Command(array(
+            'database' => $this->databaseFactory(),
+            'migrator' => $stub,
+        ), array('revert', '1412129062'));
+        $command->run();
+    }
+    
+    public function testEmitHandlerDownSuccess()
+    {
+        $this->expectOutputString('Migration 123 (Test): down ... Success' . PHP_EOL);
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123)
+                ->name('Test')
+                ->state('initial');
+        $command = $this->commandFactory(array(), 'migrationsA');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'down-start'
+        ));
+        $migration->state('success');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'down-success'
+        ));
+    }
+    
+    public function testEmitHandlerDownFailed()
+    {
+        $this->expectOutputString('Migration 123 (Test): down ... Failed' . PHP_EOL);
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123)
+                ->name('Test')
+                ->state('initial');
+        $command = $this->commandFactory(array(), 'migrationsA');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'down-start'
+        ));
+        $migration->state('success');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'down-failed'
+        ));
+    }
+    
+    public function testEmitHandlerUpSuccess()
+    {
+        $this->expectOutputString('Migration 123 (Test): up ... Success' . PHP_EOL);
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123)
+                ->name('Test')
+                ->state('initial');
+        $command = $this->commandFactory(array(), 'migrationsA');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'up-start'
+        ));
+        $migration->state('success');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'up-success'
+        ));
+    }
+    
+    public function testEmitHandlerUpFailed()
+    {
+        $this->expectOutputString('Migration 123 (Test): up ... Failed' . PHP_EOL);
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123)
+                ->name('Test')
+                ->state('initial');
+        $command = $this->commandFactory(array(), 'migrationsA');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'up-start'
+        ));
+        $migration->state('success');
+        $this->callReflectedMethod($command, 'emitHandler', array(
+            'migration' => $migration,
+            'action' => 'up-failed'
+        ));
+    }
 }
