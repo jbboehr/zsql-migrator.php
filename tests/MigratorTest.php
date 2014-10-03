@@ -2,6 +2,11 @@
 
 class MigratorTest extends Common_Migrator_Test
 {
+    public function tearDown()
+    {
+        $d = $this->databaseFactory();
+        $d->query('TRUNCATE TABLE `zsql`.`migrations`');
+    }
     
     public function testConstructorThrowsWhenNoDatabase()
     {
@@ -229,5 +234,73 @@ class MigratorTest extends Common_Migrator_Test
         $this->setExpectedException('\\zsql\\Migrator\\Exception');
         $migrator = $this->migratorFactory('migrationsA', 'migrationsFixtureB');
         $migrator->calculateRevert(1412129177);
+    }
+    
+    public function testExecuteUpSavesStateOnFailedMigration()
+    {
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123123123123)
+                ->state('initial')
+                ->up(function(Database $database) {
+                    throw new \Exception('failme');
+                });
+        $migrator = $this->migratorFactory('migrationsA', 'migrations');
+        try {
+            $this->callReflectedMethod($migrator, 'executeUp', array($migration));
+            $ex = null;
+        } catch( \Exception $ex ) {}
+        
+        $this->assertInstanceOf('\\Exception', $ex);
+        
+        $state = $this->databaseFactory()->select()
+            ->columns('state')
+            ->from('migrations')
+            ->where('version', 123123123123)
+            ->query()
+            ->fetchColumn();
+        $this->assertEquals('failed', $state);
+    }
+    
+    public function testExecuteUpThrowsOnInvalidState()
+    {
+        $this->setExpectedException('\\zsql\\Migrator\\Exception');
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->state('success');
+        $migrator = $this->migratorFactory('migrationsA');
+        $this->callReflectedMethod($migrator, 'executeUp', array($migration));
+    }
+    
+    public function testExecuteDownSavesStateOnFailedMigration()
+    {
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->version(123123123123)
+                ->state('success')
+                ->up(function(Database $database) {
+                    throw new \Exception('failme');
+                });
+        $migrator = $this->migratorFactory('migrationsA', 'migrations');
+        try {
+            $this->callReflectedMethod($migrator, 'executeDown', array($migration));
+            $ex = null;
+        } catch( \Exception $ex ) {}
+        
+        $this->assertInstanceOf('\\Exception', $ex);
+        
+        $state = $this->databaseFactory()->select()
+            ->columns('state')
+            ->from('migrations')
+            ->where('version', 123123123123)
+            ->query()
+            ->fetchColumn();
+        $this->assertEquals('failed-down', $state);
+    }
+    
+    public function testExecuteDownThrowsOnInvalidState()
+    {
+        $this->setExpectedException('\\zsql\\Migrator\\Exception');
+        $migration = new \zsql\Migrator\FluentMigration();
+        $migration->state('failed');
+        $migrator = $this->migratorFactory('migrationsA');
+        $this->callReflectedMethod($migrator, 'executeDown', array($migration));
     }
 }

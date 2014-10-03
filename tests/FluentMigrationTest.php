@@ -137,4 +137,15 @@ class FluentMigrationTest extends Common_Test
         $migration = new FluentMigration();
         $migration->inject(array());
     }
+    
+    public function testToString()
+    {
+        $this->expectOutputString('Migration: version=123 name=abc state=initial');
+        
+        $migration = new FluentMigration();
+        $migration->version(123)
+                ->name('abc')
+                ->state('initial');
+        echo $migration;
+    }
 }
