@@ -31,6 +31,7 @@ class Command
         if( isset($spec['outputFn']) && is_callable($spec['outputFn']) ) {
             $this->outputFn = $spec['outputFn'];
         }
+        $this->migrator->setEmitter(array($this, 'emitHandler'));
     }
     
     public function run()
@@ -50,7 +51,7 @@ class Command
             $todo = $this->migrator->calculateLatest();
             $this->printMigrations($todo, 'latest');
         } else {
-            
+            $this->migrator->migrateLatest();
         }
     }
     
@@ -73,7 +74,7 @@ class Command
             $todo = $this->migrator->calculatePick($this->commands);
             $this->printMigrations($todo, 'pick');
         } else {
-            
+            $this->migrator->migratePick($this->commands);
         }
     }
     
@@ -83,7 +84,7 @@ class Command
             $todo = $this->migrator->calculateRevert($this->commands);
             $this->printMigrations($todo, 'revert');
         } else {
-            
+            $this->migrator->migrateRevert($this->commands);
         }
     }
     
@@ -93,7 +94,7 @@ class Command
             $todo = $this->migrator->calculateRetry($this->commands);
             $this->printMigrations($todo, 'retry');
         } else {
-            
+            $this->migrator->migrateRetry($this->commands);
         }
     }
     
@@ -106,7 +107,22 @@ class Command
     
     // Printers
     
-    private function output($string)
+    public function emitHandler($payload)
+    {
+        $migration = $payload['migration'];
+        $action = $payload['action'];
+        if( $action === 'up-start' || $action === 'down-start' ) {
+            $this->output(sprintf('Migration %d (%s): %s ... ', 
+                    $migration->version(), $migration->name(), 
+                    str_replace('-start', '', $action)));
+        } else if( $action === 'up-success' || $action === 'down-success' ) {
+            $this->output(sprintf('Success' . PHP_EOL, $action));
+        } else if( $action === 'up-failed' || $action === 'down-failed' ) {
+            $this->output(sprintf('Failed' . PHP_EOL, $action));
+        }
+    }
+    
+    public function output($string)
     {
         if( $this->outputFn ) {
             call_user_func($this->outputFn, $string);
@@ -153,15 +169,17 @@ class Command
     
     private function getMigratorForConstructor($spec)
     {
-        if( isset($spec['migrator']) &&
-                $spec['migrator'] instanceof \zsql\Migrator\Migrator ) {
+        if( isset($spec['migrator']) /*&&
+                $spec['migrator'] instanceof \zsql\Migrator\Migrator*/ ) {
             return $spec['migrator'];
         }
         
+        $self = $this;
         $path = $this->readParam('path', 'migrations', './schema/migration*.php');
         return new Migrator(array(
             'database' => $this->database,
             'migrationPath' => $path,
+            'emit' => array($this, 'emitHandler'),
         ));
     }
     
