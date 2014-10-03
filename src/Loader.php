@@ -164,6 +164,10 @@ class Loader
             if ( $tokens[$i - 2][0] == T_CLASS && 
                     $tokens[$i - 1][0] == T_WHITESPACE && 
                     $tokens[$i][0] == T_STRING) {
+                // Ignore abstract classes
+                if( $tokens[$i - 4][0] == T_ABSTRACT ) {
+                    continue;
+                }
                 $class_name = $tokens[$i][1];
                 if( $currentNamespace ) {
                     $class_name = '\\' . $currentNamespace . '\\' . $class_name;

@@ -303,4 +303,9 @@ class MigratorTest extends Common_Migrator_Test
         $migrator = $this->migratorFactory('migrationsA');
         $this->callReflectedMethod($migrator, 'executeDown', array($migration));
     }
+    
+    public function testMigrationFileWithAbstractClass()
+    {
+        $migrator = $this->migratorFactory('migrationsD');
+    }
 }
