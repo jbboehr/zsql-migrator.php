@@ -15,6 +15,8 @@ class Command
     
     private $params = array();
     
+    private $outputFn;
+    
     /**
      * @var \zsql\Database
      */
@@ -26,12 +28,16 @@ class Command
         $this->database = $this->getDatabaseForConstructor($spec);
         $this->migrator = $this->getMigratorForConstructor($spec);
         $this->isDry = (boolean) $this->getSpliceCommand('dry');
+        if( isset($spec['outputFn']) && is_callable($spec['outputFn']) ) {
+            $this->outputFn = $spec['outputFn'];
+        }
     }
     
     public function run()
     {
+        reset($this->commands);
         $primaryCommand = current($this->commands);
-        if( !in_array($primaryCommand, array('latest', 'pick', 'revert', 'retry')) ) {
+        if( !in_array($primaryCommand, array('latest', 'pick', 'revert', 'retry', 'display')) ) {
             throw new Exception('Invalid command: ' . $primaryCommand);
         }
         array_shift($this->commands);
@@ -45,6 +51,19 @@ class Command
             $this->printMigrations($todo, 'latest');
         } else {
             
+        }
+    }
+    
+    public function display()
+    {
+        $migrations = $this->migrator->getMigrations();
+        $filter = array_shift($this->commands);
+        foreach( $migrations as $migration ) {
+            if( null === $filter || $filter === 'all' ) {
+                $this->printMigration($migration, $migration->state());
+            } else if( $filter === $migration->state() ) {
+                $this->printMigration($migration, $migration->state());
+            }
         }
     }
     
@@ -89,7 +108,18 @@ class Command
     
     private function output($string)
     {
-        echo $string;
+        if( $this->outputFn ) {
+            call_user_func($this->outputFn, $string);
+        } else {
+            echo $string;
+        }
+    }
+    
+    private function printMigration(MigrationInterface $migration, $tag)
+    {
+        $out = sprintf("Migration %d (%s): %s\n", $migration->version(),
+                $migration->name(), $tag);
+        $this->output($out);
     }
     
     private function printMigrations(array $migrations, $action)
@@ -97,9 +127,7 @@ class Command
         $direction = (in_array($action, array('latest', 'pick', 'retry')) ? 'up' : 'down');
         
         foreach( $migrations as $migration ) {
-            $out = sprintf("Migration %d (%s): %s\n", $migration->version(),
-                    $migration->name(), $direction);
-            $this->output($out);
+            $this->printMigration($migration, $direction);
         }
     }
     
@@ -132,6 +160,7 @@ class Command
         
         $path = $this->readParam('path', 'migrations', './schema/migration*.php');
         return new Migrator(array(
+            'database' => $this->database,
             'migrationPath' => $path,
         ));
     }
