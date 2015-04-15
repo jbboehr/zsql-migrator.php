@@ -17,6 +17,10 @@ matrix:
   allow_failures:
     - php: 7
 
+branches:
+  only:
+    - master
+
 before_script:
   - composer install --no-dev
   - /etc/init.d/mysql start || 1
