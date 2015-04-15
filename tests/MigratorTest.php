@@ -241,7 +241,7 @@ class MigratorTest extends Common_Migrator_Test
         $migration = new \zsql\Migrator\FluentMigration();
         $migration->version(123123123123)
                 ->state('initial')
-                ->up(function(Database $database) {
+                ->up(function(\zsql\Database $database) {
                     throw new \Exception('failme');
                 });
         $migrator = $this->migratorFactory('migrationsA', 'migrations');
@@ -275,7 +275,7 @@ class MigratorTest extends Common_Migrator_Test
         $migration = new \zsql\Migrator\FluentMigration();
         $migration->version(123123123123)
                 ->state('success')
-                ->up(function(Database $database) {
+                ->up(function(\zsql\Database $database) {
                     throw new \Exception('failme');
                 });
         $migrator = $this->migratorFactory('migrationsA', 'migrations');

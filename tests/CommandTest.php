@@ -162,7 +162,7 @@ EOF;
         
         $path = __DIR__ . '/../bin/migrate.php';
         $command = $path . ' '
-                . 'host=localhost user=zsql password=nopass ' 
+                . 'host=127.0.0.1 user=zsql password=nopass ' 
                 . 'db=zsql path=tests/fixtures/migrationsA.php ' 
                 . 'display';
         $argv = explode(' ', $command);
@@ -172,7 +172,7 @@ EOF;
     
     public function testMigrateBinUsingEnv()
     {
-        putenv('MYSQL_HOST=localhost');
+        putenv('MYSQL_HOST=127.0.0.1');
         putenv('MYSQL_USER=zsql');
         putenv('MYSQL_PASSWORD=nopass');
         putenv('MYSQL_DATABASE=zsql');
