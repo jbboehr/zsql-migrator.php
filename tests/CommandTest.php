@@ -153,7 +153,9 @@ EOF;
     {
         global $argv;
         
+        // The shebang is because we're included instead of executing it
         $expectedOutputString = <<<EOF
+#!/usr/bin/env php
 Migration 1412129062 (TestA): initial
 Migration 1412129177 (TestB): initial
 
@@ -179,7 +181,9 @@ EOF;
         
         global $argv;
         
+        // The shebang is because we're included instead of executing it
         $expectedOutputString = <<<EOF
+#!/usr/bin/env php
 Migration 1412129062 (TestA): initial
 Migration 1412129177 (TestB): initial
 
