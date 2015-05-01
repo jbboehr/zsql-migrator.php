@@ -4,17 +4,34 @@ namespace zsql\Migrator;
 
 class Command
 {
+    /**
+     * @var array
+     */
     private $commands = array();
     
+    /**
+     * @var boolean
+     */
     private $isDry;
+    
+    /**
+     * @var boolean
+     */
+    private $isHelp;
     
     /**
      * @var \zsql\Migrator\Migrator
      */
     private $migrator;
     
+    /**
+     * @var array
+     */
     private $params = array();
     
+    /**
+     * @var callable
+     */
     private $outputFn;
     
     /**
@@ -22,12 +39,19 @@ class Command
      */
     protected $database;
     
+    /**
+     * Constructor
+     * 
+     * @param array $spec
+     * @param array $args
+     */
     public function __construct($spec, $args)
     {
         $this->parseArgs($args);
         $this->database = $this->getDatabaseForConstructor($spec);
         $this->migrator = $this->getMigratorForConstructor($spec);
         $this->isDry = (boolean) $this->getSpliceCommand('dry');
+        $this->isHelp = (boolean) $this->getSpliceCommand('help');
         if( isset($spec['outputFn']) && is_callable($spec['outputFn']) ) {
             $this->outputFn = $spec['outputFn'];
         }
@@ -36,63 +60,154 @@ class Command
     
     public function run()
     {
+        if( empty($this->commands) ) {
+            $this->commands = array('help');
+        }
+        
         reset($this->commands);
-        $primaryCommand = current($this->commands);
-        if( !in_array($primaryCommand, array('latest', 'pick', 'revert', 'retry', 'display')) ) {
+        $primaryCommand = array_shift($this->commands);
+        $method = $primaryCommand . 'Action';
+        if( !method_exists($this, $method) ) {
             throw new Exception('Invalid command: ' . $primaryCommand);
         }
-        array_shift($this->commands);
-        $this->$primaryCommand();
+        $this->$method();
     }
     
-    public function latest()
+    public function helpAction()
+    {
+        echo <<<EOF
+Usage:
+ migrate help
+
+Commands:
+ latest         Executes all unexecuted migrations
+ list           Lists all known migrations
+ pick           Executes the migrations specified
+ revert         Reverts the migrations specified
+ retry          Attempts to re-run failed migrations specified
+
+
+EOF;
+    }
+    
+    public function latestAction()
     {
         if( $this->isDry ) {
             $todo = $this->migrator->calculateLatest();
             $this->printMigrations($todo, 'latest');
+        } else if( $this->isHelp ) {
+            echo <<<EOF
+Usage:
+ migrate latest [dry]
+
+Arguments:
+ dry        Will print the operations that will be executed
+
+Help:
+ Executes all unexecuted migrations in order from lowest to highest ID.
+
+
+EOF;
         } else {
             $this->migrator->migrateLatest();
         }
     }
     
-    public function display()
+    public function displayAction()
     {
-        $migrations = $this->migrator->getMigrations();
-        $filter = array_shift($this->commands);
-        foreach( $migrations as $migration ) {
-            if( null === $filter || $filter === 'all' ) {
-                $this->printMigration($migration, $migration->state());
-            } else if( $filter === $migration->state() ) {
-                $this->printMigration($migration, $migration->state());
+        // Alias for list
+        $this->listAction();
+    }
+    
+    public function listAction()
+    {
+        if( $this->isHelp ) {
+            echo <<<EOF
+Usage:
+ migrate list
+
+Help:
+ Prints a list of all known migrations.
+
+
+EOF;
+        } else {
+            $migrations = $this->migrator->getMigrations();
+            $filter = array_shift($this->commands);
+            foreach( $migrations as $migration ) {
+                if( null === $filter || $filter === 'all' ) {
+                    $this->printMigration($migration, $migration->state());
+                } else if( $filter === $migration->state() ) {
+                    $this->printMigration($migration, $migration->state());
+                }
             }
         }
     }
     
-    public function pick()
+    public function pickAction()
     {
         if( $this->isDry ) {
             $todo = $this->migrator->calculatePick($this->commands);
             $this->printMigrations($todo, 'pick');
+        } else if( $this->isHelp ) {
+            echo <<<EOF
+Usage:
+ migrate pick <ID> [<ID2> ...] [dry]
+
+Arguments:
+ dry        Will print the operations that will be executed
+
+Help:
+ Executes the migrations specified by ID.
+
+
+EOF;
         } else {
             $this->migrator->migratePick($this->commands);
         }
     }
     
-    public function revert()
+    public function revertAction()
     {
         if( $this->isDry ) {
             $todo = $this->migrator->calculateRevert($this->commands);
             $this->printMigrations($todo, 'revert');
+        } else if( $this->isHelp ) {
+            echo <<<EOF
+Usage:
+ migrate revert <ID> [<ID2>, ...] [dry]
+
+Arguments:
+ dry        Will print the operations that will be executed
+
+Help:
+ Reverts the migrations specified by ID.
+
+
+EOF;
         } else {
             $this->migrator->migrateRevert($this->commands);
         }
     }
     
-    public function retry()
+    public function retryAction()
     {
         if( $this->isDry ) {
             $todo = $this->migrator->calculateRetry($this->commands);
             $this->printMigrations($todo, 'retry');
+        } else if( $this->isHelp ) {
+            echo <<<EOF
+Usage:
+ migrate retry <ID> [<ID2>, ...] [dry]
+
+Arguments:
+ dry        Will print the operations that will be executed
+
+Help:
+ Attempts to re-run failed migrations specified by ID.
+
+
+EOF;
         } else {
             $this->migrator->migrateRetry($this->commands);
         }
@@ -164,6 +279,9 @@ class Command
         $dbname = $this->readParam('db', 'database');
         
         $mysqli = new \mysqli($host, $user, $password, $dbname, $port);
+        if( $mysqli->connect_error ) {
+            throw new \mysqli_sql_exception($mysqli->connect_error);
+        }
         return new \zsql\Database($mysqli);
     }
     
