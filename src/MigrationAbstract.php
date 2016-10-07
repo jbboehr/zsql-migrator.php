@@ -2,7 +2,7 @@
 
 namespace zsql\Migrator;
 
-use zsql\Database;
+use zsql\Adapter\Adapter;
 
 /**
  * Abstract migration class
@@ -10,7 +10,7 @@ use zsql\Database;
 abstract class MigrationAbstract implements MigrationInterface
 {
     /**
-     * @var \zsql\Database
+     * @var Adapter
      */
     protected $database;
     
@@ -37,8 +37,7 @@ abstract class MigrationAbstract implements MigrationInterface
      * @throws \zsql\Migrator\Exception
      */
     public function inject($container) {
-        if( !isset($container['database']) ||
-                !($container['database'] instanceof Database) ) {
+        if( !isset($container['database']) || !($container['database'] instanceof Adapter) ) {
             throw new Exception('Must specify a database in inject!');
         }
         $this->database = $container['database'];

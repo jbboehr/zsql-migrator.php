@@ -2,13 +2,15 @@
 
 namespace zsql\Migrator;
 
+use zsql\Adapter\Adapter;
+
 /**
  * Main migrator class
  */
 class Migrator
 {
     /**
-     * @var \zsql\Database
+     * @var Adapter
      */
     protected $database;
     
@@ -44,9 +46,8 @@ class Migrator
      */
     public function __construct($spec)
     {
-        if( !isset($spec['database']) ||
-                !($spec['database'] instanceof \zsql\Database) ) {
-            throw new Exception('Database must be instance of zsql\\Database');
+        if( !isset($spec['database']) || !($spec['database'] instanceof Adapter) ) {
+            throw new Exception('Database must be instance of zsql\\Adapter\\Adapter');
         }
         $this->database = $spec['database'];
         

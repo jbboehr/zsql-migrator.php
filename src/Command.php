@@ -2,6 +2,8 @@
 
 namespace zsql\Migrator;
 
+use zsql\Adapter\Adapter;
+
 class Command
 {
     /**
@@ -35,7 +37,7 @@ class Command
     private $outputFn;
     
     /**
-     * @var \zsql\Database
+     * @var Adapter
      */
     protected $database;
     
@@ -267,8 +269,7 @@ EOF;
     
     private function getDatabaseForConstructor($spec)
     {
-        if( isset($spec['database']) && 
-                $spec['database'] instanceof \zsql\Database ) {
+        if( isset($spec['database']) && $spec['database'] instanceof Adapter ) {
             return $spec['database'];
         }
         
@@ -282,7 +283,7 @@ EOF;
         if( $mysqli->connect_error ) {
             throw new \mysqli_sql_exception($mysqli->connect_error);
         }
-        return new \zsql\Database($mysqli);
+        return new \zsql\Adapter\MysqliAdapter($mysqli);
     }
     
     private function getMigratorForConstructor($spec)
