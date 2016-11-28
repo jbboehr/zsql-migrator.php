@@ -8,6 +8,7 @@ class Migration1234_TestA extends LegacyMigration
 {
     public function __construct()
     {
+        parent::__construct();
         throw new \Exception('testing exception in constructor');
     }
     

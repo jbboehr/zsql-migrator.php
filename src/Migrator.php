@@ -2,18 +2,15 @@
 
 namespace zsql\Migrator;
 
-use zsql\Adapter\Adapter;
+use zsql\Adapter;
 
 /**
  * Main migrator class
  */
-class Migrator
+class Migrator implements Adapter\AdapterAwareInterface
 {
-    /**
-     * @var Adapter
-     */
-    protected $database;
-    
+    use Adapter\AdapterAwareTrait;
+
     /**
      * @var callable
      */
@@ -42,15 +39,14 @@ class Migrator
     /**
      * Constructor
      * 
-     * @param \Pimple|array $spec
+     * @param array|\ArrayAccess $spec
      */
     public function __construct($spec)
     {
-        if( !isset($spec['database']) || !($spec['database'] instanceof Adapter) ) {
-            throw new Exception('Database must be instance of zsql\\Adapter\\Adapter');
+        if( isset($spec['database']) && ($spec['database'] instanceof Adapter) ) {
+            $this->setDatabase($spec['database']);
         }
-        $this->database = $spec['database'];
-        
+
         if( isset($spec['migrationPath']) ) {
             $this->migrationPath = $spec['migrationPath'];
         }
@@ -75,7 +71,7 @@ class Migrator
     /**
      * Get the migrations currently loaded
      * 
-     * @return array
+     * @return MigrationInterface[]
      */
     public function getMigrations()
     {
@@ -86,7 +82,7 @@ class Migrator
      * Set the emitter
      * 
      * @param string $emitter
-     * @return \zsql\Migrator\Migrator
+     * @return $this
      */
     public function setEmitter($emitter)
     {
@@ -97,7 +93,7 @@ class Migrator
     /**
      * List all migrations available in the initial state
      * 
-     * @return \zsql\Migrator\DatabaseMigration
+     * @return DatabaseMigration[]
      */
     public function calculateLatest()
     {
@@ -121,7 +117,8 @@ class Migrator
      * Calculate specific migrations
      * 
      * @param mixed $versions
-     * @return array
+     * @return DatabaseMigration[]
+     * @throws Exception
      */
     public function calculatePick($versions)
     {
@@ -152,8 +149,10 @@ class Migrator
     
     /**
      * Calculate migrations to retry
-     * 
-     * @return array
+     *
+     * @param mixed $versions
+     * @return DatabaseMigration[]
+     * @throws Exception
      */
     public function calculateRetry($versions = null)
     {
@@ -204,7 +203,8 @@ class Migrator
      * Calculate migrations to revert
      * 
      * @param mixed $versions
-     * @return array
+     * @return DatabaseMigration[]
+     * @throws Exception
      */
     public function calculateRevert($versions)
     {
@@ -237,7 +237,7 @@ class Migrator
     /**
      * Apply all initial migrations
      * 
-     * @return \zsql\Migrator\Migrator
+     * @return $this
      */
     public function migrateLatest()
     {
@@ -250,7 +250,7 @@ class Migrator
      * Apply a specific migration
      * 
      * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return $this
      */
     public function migratePick($versions)
     {
@@ -263,7 +263,7 @@ class Migrator
      * Retry a failed migration
      * 
      * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return $this
      */
     public function migrateRetry($versions = null)
     {
@@ -276,7 +276,7 @@ class Migrator
      * Undo a specific migration
      * 
      * @param mixed $versions
-     * @return \zsql\Migrator\Migrator
+     * @return $this
      */
     public function migrateRevert($versions)
     {
@@ -308,8 +308,8 @@ class Migrator
     /**
      * Execute up an array of migrations 
      * 
-     * @param array $migrations
-     * @throws \zsql\Migrator\Exception
+     * @param MigrationInterface[] $migrations
+     * @throws Exception
      */
     private function executeUp(array $migrations)
     {
@@ -334,22 +334,21 @@ class Migrator
     /**
      * Execute up a single migration
      * 
-     * @param \zsql\Migrator\MigrationInterface $migration
-     * @throws \zsql\Migrator\Exception
+     * @param MigrationInterface $migration
+     * @throws Exception
      */
     private function executeUpOne(MigrationInterface $migration)
     {
-        $migration->inject(array(
-            'database' => $this->database,
-        ));
-        $migration->runUp();
+        $migration
+            ->setDatabase($this->database)
+            ->runUp();
     }
     
     /**
      * Execute down an array of migrations
      * 
-     * @param array $migrations
-     * @throws \zsql\Migrator\Exception
+     * @param MigrationInterface[] $migrations
+     * @throws Exception
      */
     private function executeDown(array $migrations)
     {
@@ -374,22 +373,21 @@ class Migrator
     /**
      * Execute down a single migration
      * 
-     * @param \zsql\Migrator\MigrationInterface $migration
-     * @throws \zsql\Migrator\Exception
+     * @param MigrationInterface $migration
+     * @throws Exception
      */
     private function executeDownOne(MigrationInterface $migration)
     {
-        $migration->inject(array(
-            'database' => $this->database,
-        ));
-        $migration->runDown();
+        $migration
+            ->setDatabase($this->database)
+            ->runDown();
     }
     
     /**
      * Mark the state of a migration in the database
      * 
-     * @param type $migration
-     * @param type $state
+     * @param MigrationInterface $migration
+     * @param string $state
      */
     private function markState(MigrationInterface $migration, $state)
     {
@@ -437,9 +435,10 @@ class Migrator
      * Get all of the migrations on the file system
      * 
      * @return array
-     * @throws \zsql\Migrator\Exception
+     * @throws Exception
      */
-    private function getMigrationsOnFileSystem() {
+    private function getMigrationsOnFileSystem()
+    {
         $migrationFiles = glob($this->migrationPath);
         
         $migrations = array();
@@ -457,7 +456,8 @@ class Migrator
      * 
      * @return array
      */
-    private function getMigrationsInDatabase() {
+    private function getMigrationsInDatabase()
+    {
         $rows = $this->database->select()
             ->from($this->migrationTable)
             ->query()

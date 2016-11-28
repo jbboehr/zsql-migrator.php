@@ -1,9 +1,11 @@
 <?php
 
-use zsql\Database;
-use zsql\Migrator\FluentMigration;
+namespace zsql\Migrator\Tests;
 
-class LegacyMigrationTest extends Common_Test
+use FixtureMigration_123_LegacyFixture;
+use zsql\Migrator\Tests\Fixture\FixtureMigrationInvalidName;
+
+class LegacyMigrationTest extends Common
 {
     public function testConstruct()
     {
@@ -11,40 +13,36 @@ class LegacyMigrationTest extends Common_Test
         $this->assertEquals(123, $migration->version());;
         $this->assertEquals('LegacyFixture', $migration->name());
     }
-    
+
     public function testConstructFailsWithInvalidClassName()
     {
         $this->setExpectedException('\\zsql\\Migrator\\Exception');
         new FixtureMigrationInvalidName();
     }
-    
+
     public function testRunDown()
     {
         $migration = new FixtureMigration_123_LegacyFixture();
-        $migration->inject(array(
-            'database' => $this->databaseFactory(),
-        ));
+        $migration->setDatabase($this->databaseFactory());
         $migration->runDown();
         $this->assertEquals(true, $migration->downRun);
     }
-    
+
     public function testRunDownFails()
     {
         $this->setExpectedException('\\zsql\\Migrator\\Exception');
         $migration = new FixtureMigration_123_LegacyFixture();
         $migration->runDown();
     }
-    
+
     public function testRunUp()
     {
         $migration = new FixtureMigration_123_LegacyFixture();
-        $migration->inject(array(
-            'database' => $this->databaseFactory(),
-        ));
+        $migration->setDatabase($this->databaseFactory());
         $migration->runUp();
         $this->assertEquals(true, $migration->upRun);
     }
-    
+
     public function testRunUpFails()
     {
         $this->setExpectedException('\\zsql\\Migrator\\Exception');

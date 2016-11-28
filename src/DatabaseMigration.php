@@ -5,7 +5,7 @@ namespace zsql\Migrator;
 /**
  * This class represents a migration that has been recorded in the database
  */
-class DatabaseMigration extends \zsql\Migrator\MigrationAbstract
+class DatabaseMigration extends MigrationAbstract
 {
     /**
      * Constructor
@@ -24,18 +24,20 @@ class DatabaseMigration extends \zsql\Migrator\MigrationAbstract
     /**
      * Execute the down function
      * 
-     * @throws \zsql\Migrator\Exception
+     * @throws Exception
      */
-    public function runDown() {
+    public function runDown()
+    {
         throw new Exception('Migration ' . $this->version() . ' was only recorded in the database and cannot be run');
     }
     
     /**
      * Execute the up function
      * 
-     * @throws \zsql\Migrator\Exception
+     * @throws Exception
      */
-    public function runUp() {
+    public function runUp()
+    {
         throw new Exception('Migration ' . $this->version() . ' was only recorded in the database and cannot be run');
     }
 }

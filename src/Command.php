@@ -2,7 +2,7 @@
 
 namespace zsql\Migrator;
 
-use zsql\Adapter\Adapter;
+use zsql\Adapter;
 
 class Command
 {
@@ -22,7 +22,7 @@ class Command
     private $isHelp;
     
     /**
-     * @var \zsql\Migrator\Migrator
+     * @var Migrator
      */
     private $migrator;
     
@@ -226,6 +226,7 @@ EOF;
     
     public function emitHandler($payload)
     {
+        /** @var MigrationInterface $migration */
         $migration = $payload['migration'];
         $action = $payload['action'];
         if( $action === 'up-start' || $action === 'down-start' ) {
@@ -292,8 +293,7 @@ EOF;
                 $spec['migrator'] instanceof \zsql\Migrator\Migrator*/ ) {
             return $spec['migrator'];
         }
-        
-        $self = $this;
+
         $path = $this->readParam('path', 'migrations', './schema/migration*.php');
         return new Migrator(array(
             'database' => $this->database,

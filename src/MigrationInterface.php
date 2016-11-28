@@ -2,18 +2,13 @@
 
 namespace zsql\Migrator;
 
+use zsql\Adapter\AdapterAwareInterface;
+
 /**
  * Interface for migration classes
  */
-interface MigrationInterface
+interface MigrationInterface extends AdapterAwareInterface
 {
-    /**
-     * Inject any required dependencies
-     * 
-     * @param \Pimple|array $container
-     */
-    public function inject($container);
-    
     /**
      * Get or set the name of the migration
      * 

@@ -36,8 +36,8 @@ class FluentMigration extends MigrationAbstract
      * Get or set the up function
      * 
      * @param callable $fn
-     * @return \zsql\Migrator\FluentMigration
-     * @throws \zsql\Migrator\Exception
+     * @return mixed
+     * @throws Exception
      */
     public function up($fn = null)
     {
@@ -55,8 +55,8 @@ class FluentMigration extends MigrationAbstract
      * Get or set the down function
      * 
      * @param callable $fn
-     * @return \zsql\Migrator\FluentMigration
-     * @throws \zsql\Migrator\Exception
+     * @return mixed
+     * @throws Exception
      */
     public function down($fn = null)
     {
@@ -73,10 +73,11 @@ class FluentMigration extends MigrationAbstract
     /**
      * Executes the down function
      * 
-     * @return \zsql\Migrator\FluentMigration
-     * @throws \zsql\Migrator\Exception
+     * @return $this
+     * @throws Exception
      */
-    public function runDown() {
+    public function runDown()
+    {
         if( !is_callable($this->downFn) ) {
             throw new Exception('Specified function is not callable');
         }
@@ -87,10 +88,11 @@ class FluentMigration extends MigrationAbstract
     /**
      * Executes the up function
      * 
-     * @return \zsql\Migrator\FluentMigration
-     * @throws \zsql\Migrator\Exception
+     * @return $this
+     * @throws Exception
      */
-    public function runUp() {
+    public function runUp()
+    {
         if( !is_callable($this->upFn) ) {
             throw new Exception('Specified function is not callable');
         }
@@ -101,8 +103,8 @@ class FluentMigration extends MigrationAbstract
     /**
      * Save the current migration in the loader database
      * 
-     * @return \zsql\Migrator\FluentMigration
-     * @throws \zsql\Migrator\Exception
+     * @return $this
+     * @throws Exception
      */
     public function save()
     {

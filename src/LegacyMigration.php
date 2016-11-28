@@ -15,7 +15,7 @@ abstract class LegacyMigration extends MigrationAbstract
     /**
      * Constructor
      * 
-     * @throws \zsql\Migrator\Exception
+     * @throws Exception
      */
     public function __construct()
     {
@@ -37,10 +37,11 @@ abstract class LegacyMigration extends MigrationAbstract
     /**
      * Executes the down function
      * 
-     * @return \zsql\Migrator\LegacyMigration
-     * @throws \zsql\Migrator\Exception
+     * @return $this
+     * @throws Exception
      */
-    public function runDown() {
+    public function runDown()
+    {
         if( !$this->database ) {
             throw new Exception('Cannot execute down without a database');
         }
@@ -51,10 +52,11 @@ abstract class LegacyMigration extends MigrationAbstract
     /**
      * Executes the up function
      * 
-     * @return \zsql\Migrator\LegacyMigration
-     * @throws \zsql\Migrator\Exception
+     * @return $this
+     * @throws Exception
      */
-    public function runUp() {
+    public function runUp()
+    {
         if( !$this->database ) {
             throw new Exception('Cannot execute up without a database');
         }

@@ -2,18 +2,15 @@
 
 namespace zsql\Migrator;
 
-use zsql\Adapter\Adapter;
+use zsql\Adapter;
 
 /**
  * Abstract migration class
  */
 abstract class MigrationAbstract implements MigrationInterface
 {
-    /**
-     * @var Adapter
-     */
-    protected $database;
-    
+    use Adapter\AdapterAwareTrait;
+
     /**
      * @var string
      */
@@ -28,27 +25,12 @@ abstract class MigrationAbstract implements MigrationInterface
      * @var integer
      */
     protected $version;
-    
-    /**
-     * Injector for dependencies
-     * 
-     * @param \Pimple|array $container
-     * @return \zsql\Migrator\MigrationAbstract
-     * @throws \zsql\Migrator\Exception
-     */
-    public function inject($container) {
-        if( !isset($container['database']) || !($container['database'] instanceof Adapter) ) {
-            throw new Exception('Must specify a database in inject!');
-        }
-        $this->database = $container['database'];
-        return $this;
-    }
-    
+
     /**
      * Get or set the migration name
      * 
      * @param string $name
-     * @return \zsql\Migrator\MigrationAbstract
+     * @return mixed
      */
     public function name($name = null)
     {
@@ -63,9 +45,10 @@ abstract class MigrationAbstract implements MigrationInterface
      * Get or set the migration state
      * 
      * @param string $state
-     * @return \zsql\Migrator\MigrationAbstract
+     * @return mixed
      */
-    public function state($state = null) {
+    public function state($state = null)
+    {
         if( null === $state ) {
             return ($this->state ?: 'initial');
         }
@@ -77,7 +60,7 @@ abstract class MigrationAbstract implements MigrationInterface
      * Get or set the migration version
      * 
      * @param integer $version
-     * @return \zsql\Migrator\MigrationAbstract
+     * @return mixed
      */
     public function version($version = null)
     {

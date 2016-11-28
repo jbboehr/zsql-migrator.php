@@ -13,7 +13,7 @@ class Loader
     static private $currentFile;
     
     /**
-     * @var \zsql\Migrator\Loader
+     * @var self
      */
     static private $instance;
     
@@ -25,8 +25,8 @@ class Loader
     /**
      * Instance method
      * 
-     * @return \zsql\Migrator\Loader
-     * @throws \zsql\Migrator\Exception
+     * @return self
+     * @throws Exception
      */
     static public function _()
     {
@@ -41,9 +41,10 @@ class Loader
      * 
      * @param string $file
      * @return array
-     * @throws \zsql\Migrator\Exception
+     * @throws Exception
      */
-    public function loadFile($file) {
+    public function loadFile($file)
+    {
         if( isset(self::$migrations[$file]) ) {
             return $this->cloneMigrations(self::$migrations[$file]);
         }
@@ -81,7 +82,7 @@ class Loader
     /**
      * Fluent interface accessor for migration construction
      * 
-     * @return \zsql\Migrator\FluentMigration
+     * @return FluentMigration
      */
     public function migration() {
         $self = $this;
@@ -94,9 +95,9 @@ class Loader
     /**
      * Save migration in the loader database
      * 
-     * @param \zsql\Migrator\MigrationInterface $migration
-     * @return \zsql\Migrator\Loader
-     * @throws \zsql\Migrator\Exception
+     * @param MigrationInterface $migration
+     * @return $this
+     * @throws Exception
      */
     public function saveMigration(MigrationInterface $migration)
     {
@@ -144,7 +145,8 @@ class Loader
      * @param string $filepath
      * @return array
      */
-    private function file_get_php_classes($filepath) {
+    private function file_get_php_classes($filepath)
+    {
         $php_code = file_get_contents($filepath);
         $classes = $this->get_php_classes($php_code);
         return $classes;
@@ -156,10 +158,12 @@ class Loader
      * @param string $php_code
      * @return array
      */
-    private function get_php_classes($php_code) {
+    private function get_php_classes($php_code)
+    {
         $classes = array();
         $tokens = token_get_all($php_code);
         $count = count($tokens);
+        $currentNamespace = '';
         for ($i = 2; $i < $count; $i++) {
             if ( $tokens[$i - 2][0] == T_CLASS && 
                     $tokens[$i - 1][0] == T_WHITESPACE && 
@@ -190,5 +194,4 @@ class Loader
         }
         return $classes;
     }
-
 }
