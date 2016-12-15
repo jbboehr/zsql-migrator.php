@@ -4,25 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "090c3e2411fbee33166ca7e6a9571557",
-    "content-hash": "b0cfc5b7cf96c015943f0d8ff982675e",
+    "hash": "fb97d723d8df04a6c5d0c9297e4b8c72",
+    "content-hash": "c5997891633fa7cefd160e0d1335047d",
     "packages": [
         {
             "name": "jbboehr/zsql",
-            "version": "v0.7.1",
+            "version": "0.8.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jbboehr/zsql.php.git",
-                "reference": "935134adb1e8d25dc37f8d2d2dd0adc159bfe88a"
+                "reference": "78ab4f7050b5abbe29a7c7676581371057637fb8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jbboehr/zsql.php/zipball/935134adb1e8d25dc37f8d2d2dd0adc159bfe88a",
-                "reference": "935134adb1e8d25dc37f8d2d2dd0adc159bfe88a",
+                "url": "https://api.github.com/repos/jbboehr/zsql.php/zipball/78ab4f7050b5abbe29a7c7676581371057637fb8",
+                "reference": "78ab4f7050b5abbe29a7c7676581371057637fb8",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=7.0"
             },
             "require-dev": {
                 "apigen/apigen": "2.8.*",
@@ -56,7 +56,7 @@
                 "mysql",
                 "sql"
             ],
-            "time": "2016-11-04 21:16:02"
+            "time": "2016-12-01 07:15:10"
         }
     ],
     "packages-dev": [
@@ -110,11 +110,13 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "jbboehr/zsql": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.4.0"
+        "php": ">=7.0"
     },
     "platform-dev": []
 }
